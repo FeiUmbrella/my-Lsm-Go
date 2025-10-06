@@ -3,6 +3,7 @@ package block
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 	"myLsm-Go/pkg/iterator"
 )
 
@@ -293,9 +294,24 @@ func (b *Block) GetNumEntries() int {
 // GetValue searches for a key and returns its value with MVCC support
 // Returns (value, found, error)
 func (b *Block) GetValue(key string, txnID uint64) (string, bool) {
-	// TODO: Lab5.1 handle txnID
+	// Binary search
+	left, right := 0, len(b.entries)-1
+	if txnID == 0 {
+		txnID = math.MaxUint64
+	} // txnID=0:找最大的txn，txnID!=0:找<=txnID最大的。转化为一种情况
+	for left < right {
+		mid := (left + right + 1) / 2
+		if b.entries[mid].Key < key || (b.entries[mid].Key == key && b.entries[mid].TxnID <= txnID) {
+			left = mid
+		} else {
+			right = mid - 1
+		}
+	}
 
-	return "", false // No suitable version found
+	if left >= len(b.entries) {
+		return "", false
+	}
+	return b.entries[left].Value, true
 }
 
 // NewIterator creates a new iterator for this block

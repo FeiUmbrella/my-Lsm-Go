@@ -29,6 +29,13 @@ type Config struct {
 		} `toml:"cache"`
 	} `toml:"lsm"`
 
+	// Bloom Filter Configuration
+	BloomFilter struct {
+		// Expected number of elements
+		ExpectedSize int `toml:"BLOOM_FILTER_EXPECTED_SIZE"`
+		// Expected false positive rate
+		ExpectedErrorRate float64 `toml:"BLOOM_FILTER_EXPECTED_ERROR_RATE"`
+	} `toml:"bloom_filter"`
 	mu sync.RWMutex
 }
 
@@ -132,4 +139,18 @@ func (c *Config) GetTotalMemSizeLimit() int64 {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.LSM.Core.TotalMemSizeLimit
+}
+
+// GetBlockCacheCapacity returns the block cache capacity
+func (c *Config) GetBlockCacheCapacity() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.LSM.Cache.BlockCacheCapacity
+}
+
+// GetBlockSize returns the block size
+func (c *Config) GetBlockSize() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.LSM.Core.BlockSize
 }
